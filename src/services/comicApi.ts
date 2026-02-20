@@ -9,13 +9,6 @@ import type {
 
 async function proxyFetch<T>(endpoint: string): Promise<T | null> {
   try {
-    const { data, error } = await supabase.functions.invoke("comic-proxy", {
-      body: null,
-      headers: { "Content-Type": "application/json" },
-      method: "POST",
-    });
-
-    // Use GET with query params instead
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
     const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     
