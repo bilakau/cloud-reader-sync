@@ -1,0 +1,17 @@
+{
+  "name": "FmcComic",
+  "short_name": "FmcComic",
+  "description": "Baca Komik Gratis Tanpa Iklan",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0b0f",
+  "theme_color": "#f59e0b",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
