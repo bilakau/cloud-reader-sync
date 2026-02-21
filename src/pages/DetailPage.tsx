@@ -3,8 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchDetail } from "@/services/comicApi";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useHistory } from "@/hooks/useHistory";
-import { Bookmark, BookOpen, Check, Star, ArrowLeft, Search } from "lucide-react";
+import { useRatings } from "@/hooks/useRatings";
+import { useSubscriptions } from "@/hooks/useSubscriptions";
+import { Bookmark, BookOpen, Check, Star, Search, Bell, BellOff } from "lucide-react";
 import { useState, useEffect } from "react";
+import { RatingStars } from "@/components/RatingStars";
+import { ReviewSection } from "@/components/ReviewSection";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 function getTypeClass(type?: string) {
   if (!type) return "";
@@ -18,8 +24,11 @@ function getTypeClass(type?: string) {
 export default function DetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const { getLastRead, saveHistory } = useHistory();
+  const { averageRating, totalRatings, userRating, setRating } = useRatings(slug || "");
+  const { isSubscribed, toggleSubscription } = useSubscriptions();
   const [chapterSearch, setChapterSearch] = useState("");
   const [synopsisExpanded, setSynopsisExpanded] = useState(false);
 
@@ -60,6 +69,7 @@ export default function DetailPage() {
   const firstChapter = chapters.length > 0 ? chapters[chapters.length - 1].slug : null;
   const startSlug = lastRead || firstChapter;
   const bookmarked = slug ? isBookmarked(slug) : false;
+  const subscribed = slug ? isSubscribed(slug) : false;
 
   return (
     <div className="animate-fade-in">
@@ -98,6 +108,18 @@ export default function DetailPage() {
               {bookmarked ? <Check className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
               {bookmarked ? "Tersimpan" : "Simpan"}
             </button>
+            <button
+              onClick={() => {
+                if (!user) { toast.error("Login untuk subscribe"); return; }
+                slug && toggleSubscription(slug, title, comic.image);
+              }}
+              className={`w-full py-3 rounded-xl font-semibold border flex items-center justify-center gap-2 transition ${
+                subscribed ? "border-primary/50 bg-primary/10 text-primary" : "border-border glass hover:bg-secondary"
+              }`}
+            >
+              {subscribed ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+              {subscribed ? "Berhenti Ikuti" : "Ikuti"}
+            </button>
           </div>
         </div>
 
@@ -106,11 +128,13 @@ export default function DetailPage() {
           <h1 className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight">{title}</h1>
 
           <div className="flex flex-wrap gap-2 mb-4">
-            {comic.rating && (
-              <span className="glass px-3 py-1 rounded-lg text-xs font-bold text-primary border border-primary/20 flex items-center gap-1">
-                <Star className="w-3 h-3" /> {comic.rating}
-              </span>
-            )}
+            <RatingStars
+              averageRating={averageRating}
+              totalRatings={totalRatings}
+              userRating={userRating}
+              onRate={setRating}
+              compact
+            />
             {comic.detail?.status && (
               <span className="glass px-3 py-1 rounded-lg text-xs font-bold text-green-400 border border-green-500/20">
                 {comic.detail.status}
@@ -145,6 +169,23 @@ export default function DetailPage() {
               </button>
             )}
           </div>
+
+          {/* Rating */}
+          <div className="mb-6">
+            <RatingStars
+              averageRating={averageRating}
+              totalRatings={totalRatings}
+              userRating={userRating}
+              onRate={setRating}
+            />
+          </div>
+
+          {/* Reviews */}
+          {slug && (
+            <div className="mb-6">
+              <ReviewSection comicSlug={slug} />
+            </div>
+          )}
 
           {/* Chapter List */}
           <div className="glass rounded-2xl border border-border/30 overflow-hidden">

@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchChapter, fetchDetail } from "@/services/comicApi";
 import { useHistory } from "@/hooks/useHistory";
 import { ArrowLeft, ChevronLeft, ChevronRight, Expand } from "lucide-react";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { CommentSection } from "@/components/CommentSection";
 
 export default function ReaderPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -23,19 +24,54 @@ export default function ReaderPage() {
   const images = chapter?.images || [];
   const nav = chapter?.navigation;
   const comicInfo = chapter?.komikInfo;
-  const comicSlug = comicInfo?.title ? undefined : undefined; // we'll get from komikInfo
 
-  // Fetch parent comic slug from komikInfo
-  const parentSlug = chapter?.komikInfo?.chapters?.[0]?.slug?.replace(/-chapter-.*$/, "") || "";
+  // Derive parent slug from current chapter slug
+  const parentSlug = useMemo(() => {
+    if (!slug) return "";
+    // Remove chapter portion: "comic-name-chapter-123" -> "comic-name"
+    return slug.replace(/-chapter-.*$/, "");
+  }, [slug]);
+
+  // Fetch the parent comic detail to get the full chapter list
+  const { data: detailData } = useQuery({
+    queryKey: ["detail", parentSlug],
+    queryFn: () => fetchDetail(parentSlug),
+    enabled: !!parentSlug,
+  });
+
+  const allChapters = detailData?.data?.chapters || comicInfo?.chapters || [];
+
+  // Find the current chapter in the list
+  const currentChapterIndex = useMemo(() => {
+    if (!slug || allChapters.length === 0) return -1;
+    const idx = allChapters.findIndex((ch) => ch.slug === slug);
+    if (idx !== -1) return idx;
+    // Partial match fallback
+    return allChapters.findIndex((ch) => slug.includes(ch.slug) || ch.slug.includes(slug));
+  }, [slug, allChapters]);
+
+  // Compute prev/next from the chapter list (chapters are typically newest-first)
+  const prevChapter = currentChapterIndex >= 0 && currentChapterIndex < allChapters.length - 1
+    ? allChapters[currentChapterIndex + 1]?.slug
+    : nav?.prev;
+  const nextChapter = currentChapterIndex > 0
+    ? allChapters[currentChapterIndex - 1]?.slug
+    : nav?.next;
 
   // Save history
   useEffect(() => {
-    if (chapter && slug && comicInfo) {
-      const title = comicInfo.title?.replace(/^Komik\s*/i, "").trim() || "Komik";
-      const img = chapter.thumbnail?.url || "";
-      saveHistory(parentSlug, title, img, slug, slug);
+    if (chapter && slug) {
+      const title = comicInfo?.title?.replace(/^Komik\s*/i, "").trim() || detailData?.data?.title?.replace(/^Komik\s*/i, "").trim() || "Komik";
+      const img = chapter.thumbnail?.url || detailData?.data?.image || "";
+      const chapterTitle = allChapters.find((ch) => ch.slug === slug)?.title || slug;
+      saveHistory(parentSlug, title, img, slug, chapterTitle);
     }
-  }, [chapter, slug, comicInfo, parentSlug, saveHistory]);
+  }, [chapter, slug, comicInfo, parentSlug, saveHistory, detailData, allChapters]);
+
+  // Scroll to top on chapter change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
 
   // Scroll progress
   useEffect(() => {
@@ -62,18 +98,18 @@ export default function ReaderPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-32">
+      <div className="flex justify-center py-32 min-h-screen bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary" />
       </div>
     );
   }
 
   if (!chapter) {
-    return <div className="text-center py-32 text-destructive">Chapter tidak ditemukan.</div>;
+    return <div className="text-center py-32 text-destructive min-h-screen bg-background">Chapter tidak ditemukan.</div>;
   }
 
   return (
-    <div className="-mx-4 -mt-20 min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative">
       {/* Progress bar */}
       <div className="fixed top-0 left-0 h-[3px] z-[100] bg-gradient-to-r from-primary to-yellow-300 transition-all duration-150" style={{ width: `${progress}%` }} />
 
@@ -89,7 +125,7 @@ export default function ReaderPage() {
           <div className="min-w-0">
             <span className="text-[9px] text-primary uppercase tracking-widest font-bold">Reading</span>
             <h2 className="text-xs font-bold max-w-[250px] truncate">
-              {comicInfo?.title?.replace(/^Komik\s*/i, "").trim() || "Chapter"}
+              {comicInfo?.title?.replace(/^Komik\s*/i, "").trim() || detailData?.data?.title?.replace(/^Komik\s*/i, "").trim() || "Chapter"}
             </h2>
           </div>
         </div>
@@ -99,7 +135,7 @@ export default function ReaderPage() {
       </div>
 
       {/* Images */}
-      <div ref={containerRef} onClick={toggleUI} className="flex flex-col items-center min-h-screen w-full max-w-3xl mx-auto bg-card/50">
+      <div ref={containerRef} onClick={toggleUI} className="flex flex-col items-center min-h-screen w-full max-w-3xl mx-auto bg-card/50 pt-16 pb-24">
         {images.map((img) => (
           <div key={img.id} className="w-full relative">
             <img
@@ -120,33 +156,40 @@ export default function ReaderPage() {
         ))}
       </div>
 
+      {/* Comments Section */}
+      {slug && (
+        <div className="px-4 pb-24">
+          <CommentSection chapterSlug={slug} />
+        </div>
+      )}
+
       {/* Bottom Navigation */}
       <div className={`fixed bottom-6 left-0 w-full z-[60] px-4 flex justify-center transition-all duration-300 ${uiVisible ? "" : "translate-y-full opacity-0"}`}>
         <div className="glass p-2 rounded-2xl flex gap-1 items-center shadow-2xl border border-border/30 bg-background/80 backdrop-blur-xl">
           <button
-            onClick={() => nav?.prev && navigate(`/read/${nav.prev}`)}
-            disabled={!nav?.prev}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl ${!nav?.prev ? "opacity-30 cursor-not-allowed" : "hover:bg-primary hover:text-primary-foreground transition"}`}
+            onClick={() => prevChapter && navigate(`/read/${prevChapter}`)}
+            disabled={!prevChapter}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl ${!prevChapter ? "opacity-30 cursor-not-allowed" : "hover:bg-primary hover:text-primary-foreground transition"}`}
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-          {comicInfo?.chapters && comicInfo.chapters.length > 0 && (
+          {allChapters.length > 0 && (
             <select
               value={slug}
               onChange={(e) => navigate(`/read/${e.target.value}`)}
               className="appearance-none bg-background/50 backdrop-blur border border-border/30 rounded-xl text-xs py-2.5 pl-3 pr-8 focus:outline-none focus:border-primary cursor-pointer hover:bg-secondary transition w-40 truncate"
             >
-              {comicInfo.chapters.map((ch) => (
+              {allChapters.map((ch) => (
                 <option key={ch.slug} value={ch.slug}>{ch.title}</option>
               ))}
             </select>
           )}
 
           <button
-            onClick={() => nav?.next && navigate(`/read/${nav.next}`)}
-            disabled={!nav?.next}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl ${!nav?.next ? "opacity-30 cursor-not-allowed" : "bg-primary text-primary-foreground hover:opacity-90 transition shadow-lg"}`}
+            onClick={() => nextChapter && navigate(`/read/${nextChapter}`)}
+            disabled={!nextChapter}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl ${!nextChapter ? "opacity-30 cursor-not-allowed" : "bg-primary text-primary-foreground hover:opacity-90 transition shadow-lg"}`}
           >
             <ChevronRight className="w-5 h-5" />
           </button>

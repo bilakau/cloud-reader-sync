@@ -14,6 +14,8 @@ import ReaderPage from "@/pages/ReaderPage";
 import HistoryPage from "@/pages/HistoryPage";
 import BookmarksPage from "@/pages/BookmarksPage";
 import AuthPage from "@/pages/AuthPage";
+import NotificationsPage from "@/pages/NotificationsPage";
+import ProfilePage from "@/pages/ProfilePage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,8 @@ const App = () => (
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/bookmarks" element={<BookmarksPage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
             <Route path="/read/:slug" element={<ReaderPage />} />
             <Route path="*" element={<NotFound />} />
