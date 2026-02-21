@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Flame, CheckCircle, Clock, Search, Bookmark, User, LogOut } from "lucide-react";
+import { Home, Flame, CheckCircle, Clock, Search, Bookmark, User, Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useState } from "react";
 
 export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const { unreadCount } = useNotifications();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -42,7 +44,7 @@ export function Navbar() {
               <Link to="/ongoing" className={`hover:text-primary transition ${location.pathname === "/ongoing" ? "text-primary" : ""}`}>
                 Ongoing
               </Link>
-              <Link to="/completed" className={`hover:text-primary transition ${location.pathname === "/completed" ? "text-primary font-bold" : ""}`}>
+              <Link to="/completed" className={`hover:text-primary transition ${location.pathname === "/completed" ? "text-primary" : ""}`}>
                 Selesai
               </Link>
             </div>
@@ -68,18 +70,25 @@ export function Navbar() {
                 <Search className="w-5 h-5" />
               </button>
             )}
+
+            {user && (
+              <Link to="/notifications" className="w-10 h-10 flex items-center justify-center hover:bg-secondary rounded-full transition relative">
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
             <Link to="/bookmarks" className="w-10 h-10 flex items-center justify-center hover:bg-secondary rounded-full transition">
               <Bookmark className="w-5 h-5" />
             </Link>
-            {user ? (
-              <button onClick={() => signOut()} className="w-10 h-10 flex items-center justify-center hover:bg-secondary rounded-full transition" title="Logout">
-                <LogOut className="w-5 h-5" />
-              </button>
-            ) : (
-              <Link to="/auth" className="w-10 h-10 flex items-center justify-center hover:bg-secondary rounded-full transition">
-                <User className="w-5 h-5" />
-              </Link>
-            )}
+
+            <Link to={user ? "/profile" : "/auth"} className="w-10 h-10 flex items-center justify-center hover:bg-secondary rounded-full transition">
+              <User className="w-5 h-5" />
+            </Link>
           </div>
         </div>
       </nav>
@@ -102,6 +111,17 @@ export function Navbar() {
           <Clock className="w-5 h-5" />
           <span className="text-[10px]">Riwayat</span>
         </Link>
+        {user && (
+          <Link to="/notifications" className={`flex flex-col items-center gap-1 w-16 relative ${location.pathname === "/notifications" ? "text-primary" : "text-muted-foreground"}`}>
+            <Bell className="w-5 h-5" />
+            <span className="text-[10px]">Notif</span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 right-2 bg-destructive text-destructive-foreground text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                {unreadCount > 9 ? "+" : unreadCount}
+              </span>
+            )}
+          </Link>
+        )}
       </div>
     </>
   );

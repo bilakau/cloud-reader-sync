@@ -41,6 +41,197 @@ export type Database = {
         }
         Relationships: []
       }
+      chapter_comments: {
+        Row: {
+          chapter_slug: string
+          content: string
+          created_at: string
+          id: string
+          likes_count: number
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter_slug: string
+          content: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter_slug?: string
+          content?: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "chapter_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comic_ratings: {
+        Row: {
+          comic_slug: string
+          created_at: string
+          id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comic_slug: string
+          created_at?: string
+          id?: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comic_slug?: string
+          created_at?: string
+          id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      comic_reviews: {
+        Row: {
+          comic_slug: string
+          content: string
+          created_at: string
+          id: string
+          likes_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comic_slug: string
+          content: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comic_slug?: string
+          content?: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      comic_subscriptions: {
+        Row: {
+          comic_image: string | null
+          comic_slug: string
+          comic_title: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comic_image?: string | null
+          comic_slug: string
+          comic_title: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comic_image?: string | null
+          comic_slug?: string
+          comic_title?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          chapter_slug: string | null
+          chapter_title: string | null
+          comic_slug: string
+          comic_title: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          user_id: string
+        }
+        Insert: {
+          chapter_slug?: string | null
+          chapter_title?: string | null
+          comic_slug: string
+          comic_title: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          user_id: string
+        }
+        Update: {
+          chapter_slug?: string | null
+          chapter_title?: string | null
+          comic_slug?: string
+          comic_title?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       reading_history: {
         Row: {
           comic_slug: string
