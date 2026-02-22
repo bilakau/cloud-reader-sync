@@ -69,6 +69,7 @@ export interface ComicDetail {
   };
   genres?: { name: string; slug: string }[];
   synopsis?: string;
+  description?: string;
   chapters?: { title: string; slug: string }[];
 }
 
