@@ -60,7 +60,7 @@ export default function DetailPage() {
   }
 
   const title = comic.title.replace(/^Komik\s*/i, "").trim();
-  const synopsis = comic.synopsis || "Sinopsis tidak tersedia.";
+  const synopsis = comic.synopsis || comic.description || "Sinopsis tidak tersedia.";
   const chapters = comic.chapters || [];
   const filteredChapters = chapters.filter((ch) =>
     ch.title.toLowerCase().includes(chapterSearch.toLowerCase())
