@@ -6,6 +6,13 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Expand } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { CommentSection } from "@/components/CommentSection";
 
+function proxyImageUrl(url: string): string {
+  if (!url) return url;
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  return `https://${projectId}.supabase.co/functions/v1/comic-proxy?image=${encodeURIComponent(url)}&apikey=${anonKey}`;
+}
+
 export default function ReaderPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
