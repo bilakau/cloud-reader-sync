@@ -24,11 +24,14 @@ export default function AuthPage() {
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+        },
       });
-      if (result.error) {
-        toast.error("Login Google gagal");
+      if (error) {
+        toast.error("Login Google gagal: " + error.message);
       }
     } catch {
       toast.error("Login Google gagal");
