@@ -146,12 +146,18 @@ export default function ReaderPage() {
         {images.map((img) => (
           <div key={img.id} className="w-full relative">
             <img
-              src={img.url}
+              src={proxyImageUrl(img.url)}
               alt={`Page ${img.id}`}
               className="comic-page"
               loading="lazy"
               onError={(e) => {
                 const target = e.currentTarget;
+                // Retry once with direct URL before showing error
+                if (!target.dataset.retried) {
+                  target.dataset.retried = "1";
+                  target.src = img.url;
+                  return;
+                }
                 target.style.display = "none";
                 const errDiv = document.createElement("div");
                 errDiv.className = "flex items-center justify-center py-8 text-muted-foreground text-xs";
