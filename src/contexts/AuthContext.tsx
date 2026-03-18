@@ -49,17 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   };
 
-  const verifyOtp = async (email: string, token: string) => {
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: "signup",
-    });
-    return { error };
-  };
-
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, verifyOtp }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
