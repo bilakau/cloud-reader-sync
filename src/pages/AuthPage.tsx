@@ -59,8 +59,8 @@ export default function AuthPage() {
       if (error) {
         toast.error(error.message || "Register gagal");
       } else {
-        setShowOtp(true);
-        toast.success("Kode verifikasi telah dikirim ke email kamu!");
+        toast.success("Daftar berhasil!");
+        navigate("/");
       }
     }
 
