@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,9 +11,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [showOtp, setShowOtp] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
-  const { signIn, signUp, verifyOtp, user } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
   if (user) {
@@ -61,77 +59,14 @@ export default function AuthPage() {
       if (error) {
         toast.error(error.message || "Register gagal");
       } else {
-        setShowOtp(true);
-        toast.success("Kode verifikasi telah dikirim ke email kamu!");
+        toast.success("Daftar berhasil!");
+        navigate("/");
       }
     }
 
     setLoading(false);
   };
 
-  const handleVerifyOtp = async () => {
-    if (otpCode.length !== 6) {
-      toast.error("Masukkan 6 digit kode verifikasi");
-      return;
-    }
-    setLoading(true);
-    const { error } = await verifyOtp(email, otpCode);
-    if (error) {
-      toast.error(error.message || "Kode verifikasi salah");
-    } else {
-      toast.success("Akun berhasil diverifikasi!");
-      navigate("/");
-    }
-    setLoading(false);
-  };
-
-  if (showOtp) {
-    return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="w-full max-w-md glass rounded-2xl p-8 border border-border/30 animate-fade-in">
-          <div className="flex items-center justify-center mb-6">
-            <img src="/icon-512.png" alt="FmcComic" className="w-12 h-12 rounded-xl border border-primary/50" />
-          </div>
-
-          <h2 className="text-2xl font-extrabold text-center mb-2">Verifikasi Email</h2>
-          <p className="text-sm text-muted-foreground text-center mb-6">
-            Masukkan 6 digit kode yang dikirim ke <span className="text-primary font-semibold">{email}</span>
-          </p>
-
-          <div className="flex justify-center mb-6">
-            <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
-          </div>
-
-          <button
-            onClick={handleVerifyOtp}
-            disabled={loading || otpCode.length !== 6}
-            className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-bold hover:opacity-90 transition disabled:opacity-50 shadow-lg"
-          >
-            {loading ? "Memverifikasi..." : "Verifikasi"}
-          </button>
-
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            Tidak menerima kode?{" "}
-            <button
-              onClick={() => { setShowOtp(false); setOtpCode(""); }}
-              className="text-primary font-bold hover:underline"
-            >
-              Kirim ulang
-            </button>
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center justify-center min-h-[70vh]">
